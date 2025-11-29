@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
  * CWA 氣象資料開放平臺 API
  * 使用「一般天氣預報-今明 36 小時天氣預報」資料集
  */
-const getKaohsiungWeather = async (req, res) => {
+const getTaipeiWeather = async (req, res) => {
   try {
     // 檢查是否有設定 API Key
     if (!CWA_API_KEY) {
@@ -104,42 +104,42 @@ const getKaohsiungWeather = async (req, res) => {
       data: weatherData,
     });
   } catch (error) {
-    console.error("取得天氣資料失敗:", error.message);
+    console.error('取得天氣資料失敗:', error.message);
 
     if (error.response) {
       // API 回應錯誤
       return res.status(error.response.status).json({
-        error: "CWA API 錯誤",
-        message: error.response.data.message || "無法取得天氣資料",
+        error: 'CWA API 錯誤',
+        message: error.response.data.message || '無法取得天氣資料',
         details: error.response.data,
       });
     }
 
     // 其他錯誤
     res.status(500).json({
-      error: "伺服器錯誤",
-      message: "無法取得天氣資料，請稍後再試",
+      error: '伺服器錯誤',
+      message: '無法取得天氣資料，請稍後再試',
     });
   }
 };
 
 // Routes
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.json({
-    message: "歡迎使用 CWA 天氣預報 API",
+    message: '歡迎使用 CWA 天氣預報 API',
     endpoints: {
-      kaohsiung: "/api/weather/kaohsiung",
-      health: "/api/health",
+      taipei: '/api/weather/taipei',
+      health: '/api/health',
     },
   });
 });
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString() });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // 取得高雄天氣預報
-app.get("/api/weather/kaohsiung", getKaohsiungWeather);
+app.get('/api/weather/taipei', getTaipeiWeather);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
