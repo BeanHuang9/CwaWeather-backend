@@ -25,30 +25,27 @@ const getKaohsiungWeather = async (req, res) => {
     // 檢查是否有設定 API Key
     if (!CWA_API_KEY) {
       return res.status(500).json({
-        error: "伺服器設定錯誤",
-        message: "請在 .env 檔案中設定 CWA_API_KEY",
+        error: '伺服器設定錯誤',
+        message: '請在 .env 檔案中設定 CWA_API_KEY',
       });
     }
 
     // 呼叫 CWA API - 一般天氣預報（36小時）
     // API 文件: https://opendata.cwa.gov.tw/dist/opendata-swagger.html
-    const response = await axios.get(
-      `${CWA_API_BASE_URL}/v1/rest/datastore/F-C0032-001`,
-      {
-        params: {
-          Authorization: CWA_API_KEY,
-          locationName: "宜蘭縣",
-        },
-      }
-    );
+    const response = await axios.get(`${CWA_API_BASE_URL}/v1/rest/datastore/F-C0032-001`, {
+      params: {
+        Authorization: CWA_API_KEY,
+        locationName: '臺北市',
+      },
+    });
 
-    // 取得高雄市的天氣資料
+    // 取得臺北市的天氣資料
     const locationData = response.data.records.location[0];
 
     if (!locationData) {
       return res.status(404).json({
-        error: "查無資料",
-        message: "無法取得高雄市天氣資料",
+        error: '查無資料',
+        message: '無法取得臺北市天氣資料',
       });
     }
 
@@ -67,33 +64,33 @@ const getKaohsiungWeather = async (req, res) => {
       const forecast = {
         startTime: weatherElements[0].time[i].startTime,
         endTime: weatherElements[0].time[i].endTime,
-        weather: "",
-        rain: "",
-        minTemp: "",
-        maxTemp: "",
-        comfort: "",
-        windSpeed: "",
+        weather: '',
+        rain: '',
+        minTemp: '',
+        maxTemp: '',
+        comfort: '',
+        windSpeed: '',
       };
 
       weatherElements.forEach((element) => {
         const value = element.time[i].parameter;
         switch (element.elementName) {
-          case "Wx":
+          case 'Wx':
             forecast.weather = value.parameterName;
             break;
-          case "PoP":
-            forecast.rain = value.parameterName + "%";
+          case 'PoP':
+            forecast.rain = value.parameterName + '%';
             break;
-          case "MinT":
-            forecast.minTemp = value.parameterName + "°C";
+          case 'MinT':
+            forecast.minTemp = value.parameterName + '°C';
             break;
-          case "MaxT":
-            forecast.maxTemp = value.parameterName + "°C";
+          case 'MaxT':
+            forecast.maxTemp = value.parameterName + '°C';
             break;
-          case "CI":
+          case 'CI':
             forecast.comfort = value.parameterName;
             break;
-          case "WS":
+          case 'WS':
             forecast.windSpeed = value.parameterName;
             break;
         }
