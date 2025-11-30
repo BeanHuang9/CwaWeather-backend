@@ -106,9 +106,9 @@ const getWeatherByCity = async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     service: '豆子星際氣象中心 API',
-    example: '/api/weather/臺北市',
-    example2: '/api/weather/新北市',
-    example3: '/api/weather/高雄市',
+    example: '/api/weather/taipei',
+    example2: '/api/weather/newtaipei',
+    example3: '/api/weather/kaohsiung',
   });
 });
 
