@@ -6,22 +6,31 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CWA API 設定
 const CWA_API_BASE_URL = 'https://opendata.cwa.gov.tw/api';
 const CWA_API_KEY = process.env.CWA_API_KEY;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/**
- * 取得指定城市的天氣預報
- * city 由 URL 動態帶入
- */
+// ⭐ 城市映射表
+const cityMap = {
+  taipei: '臺北市',
+  newtaipei: '新北市',
+  kaohsiung: '高雄市',
+};
+
 const getWeatherByCity = async (req, res) => {
   try {
-    const city = req.params.city;
+    const cityKey = req.params.city;
+    const locationName = cityMap[cityKey];
+
+    if (!locationName) {
+      return res.status(400).json({
+        success: false,
+        message: `無效的城市代碼：${cityKey}（可用：taipei / newtaipei / kaohsiung）`,
+      });
+    }
 
     if (!CWA_API_KEY) {
       return res.status(500).json({
@@ -30,11 +39,10 @@ const getWeatherByCity = async (req, res) => {
       });
     }
 
-    // 呼叫 CWA API - 一般天氣預報（今明 36 小時）
     const response = await axios.get(`${CWA_API_BASE_URL}/v1/rest/datastore/F-C0032-001`, {
       params: {
         Authorization: CWA_API_KEY,
-        locationName: city,
+        locationName: locationName,
       },
     });
 
@@ -43,11 +51,10 @@ const getWeatherByCity = async (req, res) => {
     if (!locationData) {
       return res.status(404).json({
         success: false,
-        error: `查無城市資料：${city}`,
+        message: `查無城市資料：${locationName}`,
       });
     }
 
-    // 整理資料
     const weatherData = {
       city: locationData.locationName,
       forecasts: [],
@@ -57,7 +64,7 @@ const getWeatherByCity = async (req, res) => {
     const timeCount = weatherElements[0].time.length;
 
     for (let i = 0; i < timeCount; i++) {
-      const timeBlock = {
+      const block = {
         startTime: weatherElements[0].time[i].startTime,
         endTime: weatherElements[0].time[i].endTime,
         weather: '',
@@ -68,30 +75,26 @@ const getWeatherByCity = async (req, res) => {
 
       weatherElements.forEach((el) => {
         const val = el.time[i].parameter?.parameterName;
-
         switch (el.elementName) {
           case 'Wx':
-            timeBlock.weather = val;
+            block.weather = val;
             break;
           case 'PoP':
-            timeBlock.rain = val + '%';
+            block.rain = val + '%';
             break;
           case 'MinT':
-            timeBlock.minTemp = val + '°C';
+            block.minTemp = val + '°C';
             break;
           case 'MaxT':
-            timeBlock.maxTemp = val + '°C';
+            block.maxTemp = val + '°C';
             break;
         }
       });
 
-      weatherData.forecasts.push(timeBlock);
+      weatherData.forecasts.push(block);
     }
 
-    return res.json({
-      success: true,
-      data: weatherData,
-    });
+    res.json({ success: true, data: weatherData });
   } catch (err) {
     console.error('取得天氣資料失敗:', err.message);
     res.status(500).json({
@@ -102,21 +105,16 @@ const getWeatherByCity = async (req, res) => {
   }
 };
 
-// Routes
 app.get('/', (req, res) => {
   res.json({
     service: '豆子星際氣象中心 API',
+    cities: Object.keys(cityMap),
     example: '/api/weather/taipei',
-    example2: '/api/weather/newtaipei',
-    example3: '/api/weather/kaohsiung',
   });
 });
 
-// ⭐ 多城市 API（你要加入什麼城市都可以）
 app.get('/api/weather/:city', getWeatherByCity);
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 伺服器啟動成功`);
+  console.log(`🚀 伺服器啟動成功，Port: ${PORT}`);
 });
-// console.log(`🌐 監聽中: http://localhost:${PORT}`);
