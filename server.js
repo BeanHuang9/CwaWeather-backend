@@ -22,6 +22,7 @@ const cityMap = {
   taipei: '臺北市',
   newtaipei: '新北市',
   kaohsiung: '高雄市',
+  kaohsiung: '臺南市',
 };
 
 /* ---------------------------------------------------
